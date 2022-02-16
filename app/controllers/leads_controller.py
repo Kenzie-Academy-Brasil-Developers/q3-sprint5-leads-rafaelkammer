@@ -32,6 +32,9 @@ def get_leads():
     per_page = request.args.get("per_page", 3, type=int)
     leads = base_query.order_by(Lead.visits).paginate(page, per_page)
 
+    if not leads.items:
+        return {"error": "no data found"}
+
     return jsonify(leads.items), HTTPStatus.OK
 
 
@@ -69,12 +72,12 @@ def create_lead():
     
     return jsonify(lead), HTTPStatus.CREATED
 
-def update_lead(lead_email: str):
+def update_lead():
     data = request.get_json()
     session: Session = db.session
     base_query = session.query(Lead)
 
-    lead = base_query.filter_by(email=lead_email).first()
+    lead = base_query.filter_by(email=data["email"]).first()
 
     if not lead:
         return {"error": "email not found"}, HTTPStatus.NOT_FOUND
@@ -89,11 +92,12 @@ def update_lead(lead_email: str):
 
     return "", HTTPStatus.OK
 
-def delete_lead(lead_email: str):
+def delete_lead():
+    data = request.get_json()
     session: Session = db.session
     base_query = session.query(Lead)
 
-    lead = base_query.filter_by(email=lead_email).first()
+    lead = base_query.filter_by(email=data["email"]).first()
 
     if not lead:
         return {"error": "email not found"}, HTTPStatus.NOT_FOUND
